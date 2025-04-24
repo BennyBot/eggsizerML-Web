@@ -30,6 +30,30 @@ const CANVAS_SIZE = { width: "45vw", height: "40vh", border: "1px solid #FFF "};
 
 
 export default function EggSizerApp() {
+  // add opencv.js script tag to the document
+  useEffect(() => {
+    const script1 = document.createElement("script");
+    script1.src = import.meta.env.BASE_URL + "opencv.js";
+    script1.async = true;
+    script1.onload = () => {
+      console.log("OpenCV.js loaded");
+      // OpenCV is ready to use
+      cv.onRuntimeInitialized = () => {
+        console.log("OpenCV is ready");
+      };
+    };
+
+    const script2 = document.createElement("script");
+    script2.src = import.meta.env.BASE_URL + "opencvblobdetector.js";
+    script2.async = true;
+    script2.onload = () => {
+      console.log("OpenCV blob detector loaded");
+      // OpenCV blob detector is ready to use
+    }
+    document.body.appendChild(script1);
+    document.body.appendChild(script2);
+  }, []);
+
   // --- state ---------------------------------------------------------------
   const [files,   setFiles]                 = useState([]);      // FileList
   const [index,   setIndex]                 = useState(0);       // current image idx
@@ -203,6 +227,7 @@ export default function EggSizerApp() {
 
   // --- render --------------------------------------------------------------
   return (
+
     <div className="p-4 space-y-4 text-center">
       <h1 className="text-2xl font-bold">EggSizer CV (Web)</h1>
 
