@@ -206,11 +206,11 @@ export default function EggSizerApp() {
       const maxLen = Math.max(otsuAreas.length, blobAreas.length);
 
       for (let i = 0; i < maxLen; ++i) {
-        oA = otsuAreas[i].toFixed(3) ?? null;
-        bA = blobAreas[i].toFixed(3) ?? null;
-        avgSize = ''
+        oA = otsuAreas[i] ?? null;
+        bA = blobAreas[i] ?? null;
+        avgSize = '';
         if (oA && bA) {
-          avgSize = ((oA + bA) / 2).toFixed(3);
+          avgSize = ((oA + bA) / 2);
         }
         rows.push({
           imgName   : file.name,
