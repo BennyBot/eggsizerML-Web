@@ -111,12 +111,21 @@ export default function EggSizerApp() {
       const approx = new cv.Mat();
       cv.approxPolyDP(cnt, approx, 0.005 * peri, true);
       const area = cv.contourArea(approx, false);
+
+      // calculate the pixel X,Y center of the contour
+      const M = cv.moments(cnt, false);
+      const cx = Math.floor(M.m10 / M.m00);
+      const cy = Math.floor(M.m01 / M.m00);
+      const center = new cv.Point(cx, cy);
+
+
       if (area >= POLY_MIN_AREA && area <= POLY_MAX_AREA) {
         areas.push(area / PIXELS_PER_MM);
         const colour = new cv.Scalar(0, 150, 0, 255);
         const tmpVec = new cv.MatVector();
         tmpVec.push_back(approx);
         cv.drawContours(dst, tmpVec, -1, colour, 2);
+        cv.putText(dst, `${i}`, center, cv.FONT_HERSHEY_SIMPLEX, 0.5, colour, 8);
         tmpVec.delete(); 
         //colour.delete();
       }
@@ -155,7 +164,7 @@ export default function EggSizerApp() {
 
     centers.forEach((c, i) => {
       cv.circle(dst, new cv.Point(c.location.x, c.location.y), c.radius, new cv.Scalar(255, 0, 0, 255), 2);
-      cv.putText(dst, `${i}`, new cv.Point(c.location.x, c.location.y), cv.FONT_HERSHEY_SIMPLEX, 0.5, new cv.Scalar(255, 0, 0, 255), 2);
+      cv.putText(dst, `${i}`, new cv.Point(c.location.x, c.location.y), cv.FONT_HERSHEY_SIMPLEX, 0.5, new cv.Scalar(255, 0, 0, 255), 8);
       areas.push(c.radius * c.radius * Math.PI / PIXELS_PER_MM);
     });
     
