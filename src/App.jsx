@@ -166,7 +166,7 @@ export default function EggSizerApp() {
 
     centers.forEach((c, i) => {
       cv.circle(dst, new cv.Point(c.location.x, c.location.y), c.radius, new cv.Scalar(255, 0, 0, 255), 2);
-      cv.putText(dst, `${i}`, new cv.Point(c.location.x, c.location.y), cv.FONT_HERSHEY_SIMPLEX, 1, new cv.Scalar(255, 0, 0, 255), 4);
+      cv.putText(dst, `${i+1}`, new cv.Point(c.location.x, c.location.y), cv.FONT_HERSHEY_SIMPLEX, 1, new cv.Scalar(255, 0, 0, 255), 4);
       areas.push(c.radius * c.radius * Math.PI / PIXELS_PER_MM);
     });
     
