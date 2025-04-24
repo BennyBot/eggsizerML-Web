@@ -65,6 +65,8 @@ export default function EggSizerApp() {
   const canvLL = useRef(); // Otsu processed   (lower‑left)
   const canvLR = useRef(); // polygon approx   (lower‑right)
 
+  let processedFiles = [];
+
   // --- helpers -------------------------------------------------------------
   const readImageToMat = (file, cb) => {
     const img = new Image();
@@ -178,9 +180,19 @@ export default function EggSizerApp() {
       const { dst: blobDst, areas: blobAreas } = detectBlobs(orig);
       cv.imshow(canvUR.current, blobDst);
 
+      // if we have already processed this file, skip it
+      if (processedFiles.includes(file.name)) {
+        console.log("File already processed:", file.name);
+        orig.delete(); otsu.delete(); polyDst.delete(); blobDst.delete();
+        return;
+      }
+
+      processedFiles.push(file.name);
+
       // build per‑image result rows
       const rows = [];
       const maxLen = Math.max(otsuAreas.length, blobAreas.length);
+
       for (let i = 0; i < maxLen; ++i) {
         rows.push({
           imgName   : file.name,
@@ -189,8 +201,11 @@ export default function EggSizerApp() {
           blobSize  : blobAreas[i]  ?? ''
         });
       }
-      setResults(prev => [...prev, ...rows]);
 
+      setResults((prev) => [...prev, ...rows]);
+
+
+      
       // memory cleanup
       orig.delete(); otsu.delete(); polyDst.delete(); blobDst.delete();
     });

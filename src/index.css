@@ -40,6 +40,8 @@ h1 {
   gap: 1em;
   align-items: center;
   padding-bottom: 5em;
+  width: 100%;
+  align-self: center;
 }
 
 .twocolumn {
