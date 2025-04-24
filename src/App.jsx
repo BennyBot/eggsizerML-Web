@@ -210,7 +210,8 @@ export default function EggSizerApp() {
           imgName   : file.name,
           eggNo     : i + 1,
           otsuSize  : otsuAreas[i]  ?? '',
-          blobSize  : blobAreas[i]  ?? ''
+          blobSize  : blobAreas[i]  ?? '',
+          avgSize: (otsuAreas[i] + blobAreas[i]) / 2 ?? ''
         });
       }
 
@@ -242,7 +243,7 @@ export default function EggSizerApp() {
   const downloadCSV = () => {
     if (!results.length) return;
     const header = 'Image Name,Egg No.,Otsu Size (mm²),Blob Size (mm²)\n';
-    const csv    = header + results.map(r => `${r.imgName},${r.eggNo},${r.otsuSize},${r.blobSize}`).join('\n');
+    const csv    = header + results.map(r => `${r.imgName},${r.eggNo},${r.otsuSize},${r.blobSize},${r.avgSize}`).join('\n');
     const blob   = new Blob([csv], { type: 'text/csv' });
     const link   = document.createElement('a');
     link.href    = URL.createObjectURL(blob);
@@ -315,6 +316,7 @@ export default function EggSizerApp() {
                 <td className="px-2 border text-center">{row.eggNo}</td>
                 <td className="px-2 border text-right">{row.otsuSize}</td>
                 <td className="px-2 border text-right">{row.blobSize}</td>
+                <td className="px-2 border text-right">{row.avgSize}</td>
               </tr>
             ))}
           </tbody>
