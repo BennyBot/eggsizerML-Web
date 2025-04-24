@@ -105,6 +105,7 @@ export default function EggSizerApp() {
     const dst = orig.clone();
     const areas = [];
 
+    let eggcnt = 0;
     for (let i = 0; i < contours.size(); ++i) {
       const cnt = contours.get(i);
       const peri = cv.arcLength(cnt, true);
@@ -120,12 +121,13 @@ export default function EggSizerApp() {
 
 
       if (area >= POLY_MIN_AREA && area <= POLY_MAX_AREA) {
+        eggcnt++;
         areas.push(area / PIXELS_PER_MM);
         const colour = new cv.Scalar(0, 150, 0, 255);
         const tmpVec = new cv.MatVector();
         tmpVec.push_back(approx);
         cv.drawContours(dst, tmpVec, -1, colour, 2);
-        cv.putText(dst, `${i}`, center, cv.FONT_HERSHEY_SIMPLEX, 4, colour, 8);
+        cv.putText(dst, `${eggcnt}`, center, cv.FONT_HERSHEY_SIMPLEX, 1, colour, 4);
         tmpVec.delete(); 
         //colour.delete();
       }
@@ -164,7 +166,7 @@ export default function EggSizerApp() {
 
     centers.forEach((c, i) => {
       cv.circle(dst, new cv.Point(c.location.x, c.location.y), c.radius, new cv.Scalar(255, 0, 0, 255), 2);
-      cv.putText(dst, `${i}`, new cv.Point(c.location.x, c.location.y), cv.FONT_HERSHEY_SIMPLEX, 4, new cv.Scalar(255, 0, 0, 255), 8);
+      cv.putText(dst, `${i}`, new cv.Point(c.location.x, c.location.y), cv.FONT_HERSHEY_SIMPLEX, 1, new cv.Scalar(255, 0, 0, 255), 4);
       areas.push(c.radius * c.radius * Math.PI / PIXELS_PER_MM);
     });
     
