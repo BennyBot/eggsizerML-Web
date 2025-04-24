@@ -153,8 +153,9 @@ export default function EggSizerApp() {
 
     let centers = findBlobs(gray, thresh, params);
 
-    centers.forEach((c) => {
+    centers.forEach((c, i) => {
       cv.circle(dst, new cv.Point(c.location.x, c.location.y), c.radius, new cv.Scalar(255, 0, 0, 255), 2);
+      cv.putText(dst, `${i}`, new cv.Point(c.location.x, c.location.y), cv.FONT_HERSHEY_SIMPLEX, 0.5, new cv.Scalar(255, 0, 0, 255), 2);
       areas.push(c.radius * c.radius * Math.PI / PIXELS_PER_MM);
     });
     
