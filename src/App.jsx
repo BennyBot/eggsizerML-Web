@@ -125,7 +125,7 @@ export default function EggSizerApp() {
         const tmpVec = new cv.MatVector();
         tmpVec.push_back(approx);
         cv.drawContours(dst, tmpVec, -1, colour, 2);
-        cv.putText(dst, `${i}`, center, cv.FONT_HERSHEY_SIMPLEX, 0.5, colour, 8);
+        cv.putText(dst, `${i}`, center, cv.FONT_HERSHEY_SIMPLEX, 4, colour, 8);
         tmpVec.delete(); 
         //colour.delete();
       }
@@ -164,7 +164,7 @@ export default function EggSizerApp() {
 
     centers.forEach((c, i) => {
       cv.circle(dst, new cv.Point(c.location.x, c.location.y), c.radius, new cv.Scalar(255, 0, 0, 255), 2);
-      cv.putText(dst, `${i}`, new cv.Point(c.location.x, c.location.y), cv.FONT_HERSHEY_SIMPLEX, 0.5, new cv.Scalar(255, 0, 0, 255), 8);
+      cv.putText(dst, `${i}`, new cv.Point(c.location.x, c.location.y), cv.FONT_HERSHEY_SIMPLEX, 4, new cv.Scalar(255, 0, 0, 255), 8);
       areas.push(c.radius * c.radius * Math.PI / PIXELS_PER_MM);
     });
     
