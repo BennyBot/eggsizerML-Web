@@ -206,17 +206,17 @@ export default function EggSizerApp() {
       const maxLen = Math.max(otsuAreas.length, blobAreas.length);
 
       for (let i = 0; i < maxLen; ++i) {
-        oA = otsuAreas[i] ?? null;
-        bA = blobAreas[i] ?? null;
+        oA = otsuAreas[i].toFixed(3) ?? null;
+        bA = blobAreas[i].toFixed(3) ?? null;
         avgSize = ''
         if (oA && bA) {
-          avgSize = ((oA + bA) / 2);
+          avgSize = ((oA + bA) / 2).toFixed(3);
         }
         rows.push({
           imgName   : file.name,
           eggNo     : i + 1,
-          otsuSize  : otsuAreas[i] ?? '',
-          blobSize  : blobAreas[i]  ?? '',
+          otsuSize  : oA ?? '',
+          blobSize  : bA ?? '',
           avgSize: avgSize
         });
       }
@@ -313,6 +313,7 @@ export default function EggSizerApp() {
               <th className="px-2 border">Egg No.</th>
               <th className="px-2 border">Otsu Size (mm²)</th>
               <th className="px-2 border">Blob Size (mm²)</th>
+              <th className="px-2 border">Avg Size (mm²)</th>
             </tr>
           </thead>
           <tbody>
