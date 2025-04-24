@@ -215,16 +215,14 @@ export default function EggSizerApp() {
         rows.push({
           imgName   : file.name,
           eggNo     : i + 1,
-          otsuSize  : oA ?? '',
-          blobSize  : bA ?? '',
+          otsuSize  : otsuAreas[i] ?? '',
+          blobSize  : blobAreas[i] ?? '',
           avgSize: avgSize
         });
       }
 
       setResults((prev) => [...prev, ...rows]);
 
-
-      
       // memory cleanup
       orig.delete(); otsu.delete(); polyDst.delete(); blobDst.delete();
     });
@@ -313,7 +311,6 @@ export default function EggSizerApp() {
               <th className="px-2 border">Egg No.</th>
               <th className="px-2 border">Otsu Size (mm²)</th>
               <th className="px-2 border">Blob Size (mm²)</th>
-              <th className="px-2 border">Avg Size (mm²)</th>
             </tr>
           </thead>
           <tbody>
