@@ -45,9 +45,16 @@ export default function EggSizerApp() {
   const [rows, setRows] = useState([]);   // ALL egg rows across images
   const [bases, setBases] = useState({});   // {index:{blob:Mat,poly:Mat}}
   const [processing, setProcessing] = useState(false);
+  const [pxPerMm, setPxPerMm] = useState(PIXELS_PER_MM);
 
   const canvBlob = useRef();
   const canvPoly = useRef();
+  
+  const handlePxPerMmChange = (e) => {
+    const value = e.target.value;
+    if(value < 1) return;
+    setPxPerMm(value);
+  };
 
   /* --------------------------- helpers -------------------------------- */
   const toGray = (src) => {
@@ -450,6 +457,7 @@ export default function EggSizerApp() {
       <div className="btn-row">
         <input type="file" multiple accept="image/*" disabled={!cvReady||processing} onChange={onFileChange}
                className="file:rounded-lg file:border-0 file:bg-gray-800 file:text-white disabled:opacity-40" />  
+        <input type="number" value={pxPerMm} onChange={handlePxPerMmChange} min="1" className="px-2 py-1 border rounded" placeholder="Pixels per mm" />
         <button onClick={()=>setIdx(i=>Math.max(0,i-1))} disabled={idx<=0 || processing} className="px-3 py-1 bg-gray-800 rounded disabled:opacity-40">Previous Image</button>
         <button onClick={()=>setIdx(i=>Math.min(files.length-1,i+1))} disabled={idx>=files.length-1 || processing} className="px-3 py-1 bg-gray-800 rounded disabled:opacity-40">Next Image</button>
         <button onClick={exportCSV} disabled={!rows.length} className="blue">Export CSV</button>
