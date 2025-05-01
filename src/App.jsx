@@ -198,7 +198,8 @@ export default function EggSizerApp() {
               blobcenter: b?.center ?? {x:0, y:0},
               avg,
               radius: b?.radius || 30,
-              imgIdx: fi
+              imgIdx: fi,
+              polyPts: p?.polyPts || [],
             };
             newRows.push(row);
             combined.push(row);
@@ -207,9 +208,12 @@ export default function EggSizerApp() {
           const polyMat = orig.clone();
           drawBlobOverlay(blobMat, combined); 
           drawPolyOverlay(polyMat, combined);
-          newBases[fi]={blob:blobMat,poly:polyMat};
-          orig.delete(); otsu.delete(); res();
-        }; img.src=URL.createObjectURL(file);
+          newBases[fi] = {
+            blob:blobMat, poly:polyMat, orig:orig
+          };
+          otsu.delete(); res();
+        }; 
+        img.src=URL.createObjectURL(file);
       });
     }
     setRows(newRows);
@@ -225,21 +229,57 @@ export default function EggSizerApp() {
 
   /* ------------------ deletion update --------------------------- */
   const removeRow=(key)=>{
-    const remaining=rows.filter(r=>r.key!==key); setRows(remaining);
-    // rebuild bases[idx] if any row from that image was removed
-    const group=remaining.filter(r=>r.imgIdx===idx);
-    if(!bases[idx]) return;
-    const baseB=bases[idx].blob.clone(); const baseP=bases[idx].poly.clone();
-    // clear overlay by cloning from original? we stored with overlay; easiest: redraw fresh from original image stored as canvases? For brevity, skip re-clear; just clear canvas and draw labels that remain
-    const blankB=bases[idx].blob.clone(); cv.imshow(canvBlob.current,blankB); blankB.delete();
-    const blankP=bases[idx].poly.clone(); cv.imshow(canvPoly.current,blankP); blankP.delete();
-    drawBlobOverlay(bases[idx].blob, group); drawPolyOverlay(bases[idx].poly, group);
-    cv.imshow(canvBlob.current,bases[idx].blob); cv.imshow(canvPoly.current,bases[idx].poly);
+    // remove from rows
+    const newRows = rows.filter(r => r.key !== key);
+    setRows(newRows);
+
+    // now, we need to update the bases using base.orig, and then redrawing the blob and poly without the deleted egg
+    const base = bases[idx];
+    if(!base) return;
+
+    const orig = base.orig.clone();
+    
+    // we shouldn't need to redo the poly and blob detection, but we do need to remove the egg from the image
+    // the row already contains the center and radius for blob, and the center and polyPts for poly
+    const hit = newRows.find(r => r.key === key);
+    if(!hit) return;
+
+    bases[idx].blob.delete();
+    bases[idx].poly.delete();
+
+    bases[idx].blob = orig.clone();
+    bases[idx].poly = orig.clone();
+
+    const blobList = newRows.filter(r => r.imgIdx === idx).map(r => ({
+      center: {x:r.blobcenter.x, y:r.blobcenter.y},
+      radius: r.radius,
+    }));
+    const polyList = newRows.filter(r => r.imgIdx === idx).map(r => ({
+      center: {x:r.polycenter.x, y:r.polycenter.y},
+      polyPts: r.polyPts,
+    }));
+    drawBlobOverlay(bases[idx].blob, blobList);
+    drawPolyOverlay(bases[idx].poly, polyList);
+
+    cv.imshow(canvBlob.current, bases[idx].blob);
+    cv.imshow(canvPoly.current, bases[idx].poly);
+    // update the bases
+    const newBases = {...bases};
+    newBases[idx] = {
+      blob: bases[idx].blob,
+      poly: bases[idx].poly,
+      orig: orig,
+    };
+
+    setBases(newBases);
   };
+
+
   const clickBlobCanvas = (e) => {
     const r = canvBlob.current.getBoundingClientRect();
     const x = e.clientX - r.left;
     const y = e.clientY - r.top;
+    console.log(`Blob click at (${x},${y})`);
     const hit = rows.find(
       row => row.imgIdx === idx && ((x-row.blobcenter.x)**2 + (y-row.blobcenter.y)**2 <= row.radius**2)
     );
@@ -250,6 +290,7 @@ export default function EggSizerApp() {
     const r = canvPoly.current.getBoundingClientRect();
     const x = e.clientX - r.left;
     const y = e.clientY - r.top;
+    console.log(`Poly click at (${x},${y})`);
     const hit = rows.find(
       row => row.imgIdx === idx && ((x-row.polycenter.x)**2 + (y-row.polycenter.y)**2 <= row.radius**2)
     );
