@@ -244,7 +244,7 @@ export default function EggSizerApp() {
   /* ------------------ UI -------------------------------- */
   return (
     <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4 text-center">EggSizer CV (Web)</h1>
+      <h1 className="text-2xl font-bold mb-4 text-center">EggSizer ML (Web)</h1>
       <div className="flex flex-wrap gap-2 justify-center mb-4">
         <input type="file" multiple accept="image/*" disabled={!cvReady||processing} onChange={onFileChange}
                className="file:rounded-lg file:border-0 file:bg-gray-800 file:text-white disabled:opacity-40" />
