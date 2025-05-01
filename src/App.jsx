@@ -19,7 +19,7 @@ const POLY_MAX_AREA = 500000;
 const PIXELS_PER_MM = 100;
 const CANVAS_STYLE  = { width: "100%", height: "100%", display: "block", backgroundColor: "#000" };
 
-export default function EggCanvas({mat, onClick}) {
+export function EggCanvas({mat, onClick}) {
   const ref = useRef(null);
 
   useLayoutEffect(() => {
