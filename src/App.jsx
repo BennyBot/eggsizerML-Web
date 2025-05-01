@@ -68,25 +68,49 @@ export default function EggSizerApp() {
     cv.findContours(thresh, contours, hierarchy, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE);
     const eggs=[];
     for(let i=0;i<contours.size();i++){
-      const cnt=contours.get(i); const approx=new cv.Mat();
-      cv.approxPolyDP(cnt,approx,0.005*cv.arcLength(cnt,true),true);
+      const cnt=contours.get(i);
+      const approx=new cv.Mat();
+      cv.approxPolyDP(cnt, approx, 0.005*cv.arcLength(cnt,true), true);
       const area=cv.contourArea(approx);
-      if(area>=POLY_MIN_AREA&&area<=POLY_MAX_AREA){const m=cv.moments(cnt);eggs.push({center:{x:m.m10/m.m00,y:m.m01/m.m00},area:area/PIXELS_PER_MM});}
+      if(area>=POLY_MIN_AREA && area<=POLY_MAX_AREA){
+        const m=cv.moments(cnt);
+        // extract vertices
+        const pts=[];
+        for(let j=0;j<approx.rows;j++){ const pt=approx.intPtr(j); pts.push({x:pt[0],y:pt[1]}); }
+        eggs.push({ center:{x:m.m10/m.m00,y:m.m01/m.m00}, area:area/PIXELS_PER_MM, polyPts:pts });
+      }
       cnt.delete(); approx.delete();
     }
     contours.delete(); hierarchy.delete();
     return eggs;
   };
+
   const detectBlobs = (src) => {
     const gray=toGray(src); const bin=new cv.Mat();
     cv.threshold(gray,bin,0,255,cv.THRESH_BINARY|cv.THRESH_OTSU);
     const centers=findBlobs(gray,bin,{faster:true,filterByArea:true,minArea:BLOB_MIN_AREA,maxArea:BLOB_MAX_AREA});
     gray.delete(); bin.delete();
-    return centers.map(c=>({center:{x:c.location.x,y:c.location.y},radius:c.radius,area:Math.PI*c.radius*c.radius/PIXELS_PER_MM}));
+    return centers.map(c=>({ center:{x:c.location.x,y:c.location.y}, radius:c.radius, area:Math.PI*c.radius*c.radius/PIXELS_PER_MM }));
   };
-  const drawBlobOverlay=(mat,list)=>{list.forEach(e=>{cv.circle(mat,new cv.Point(e.center.x,e.center.y),e.radius||30,new cv.Scalar(255,0,0,255),2);cv.putText(mat,String(e.id),new cv.Point(e.center.x,e.center.y),cv.FONT_HERSHEY_SIMPLEX,1,new cv.Scalar(255,0,0,255),3);});};
-  const drawPolyOverlay=(mat,list)=>{list.forEach(e=>{cv.putText(mat,String(e.id),new cv.Point(e.center.x,e.center.y),cv.FONT_HERSHEY_SIMPLEX,1,new cv.Scalar(0,150,0,255),3);});};
 
+  /* overlays */
+  const drawBlobOverlay=(mat,list)=>{
+    list.forEach(e=>{
+      cv.circle(mat,new cv.Point(e.center.x,e.center.y),e.radius||30,new cv.Scalar(255,0,0,255),2);
+      cv.putText(mat,String(e.id),new cv.Point(e.center.x,e.center.y),cv.FONT_HERSHEY_SIMPLEX,1,new cv.Scalar(255,0,0,255),3);
+    });
+  };
+  const drawPolyOverlay=(mat,list)=>{
+    list.forEach(e=>{
+      if(e.polyPts){
+        for(let i=0;i<e.polyPts.length;i++){
+          const p1=e.polyPts[i]; const p2=e.polyPts[(i+1)%e.polyPts.length];
+          cv.line(mat,new cv.Point(p1.x,p1.y),new cv.Point(p2.x,p2.y),new cv.Scalar(0,150,0,255),2);
+        }
+      }
+      cv.putText(mat,String(e.id),new cv.Point(e.center.x,e.center.y),cv.FONT_HERSHEY_SIMPLEX,1,new cv.Scalar(0,150,0,255),3);
+    });
+  };
   /* ------------------ batch process all files -------------------------- */
   const processAll = async (fileList) => {
     setProcessing(true); const newRows=[]; const newBases={};
