@@ -13,8 +13,8 @@ import React, { useEffect, useRef, useState } from "react";
 
 const BLOB_MIN_AREA = 5000;
 const BLOB_MAX_AREA = 500000;
-const POLY_MIN_AREA = 18000;
-const POLY_MAX_AREA = 700000;
+const POLY_MIN_AREA = 5000;
+const POLY_MAX_AREA = 500000;
 const PIXELS_PER_MM = 100;
 const CANVAS_STYLE  = { width: "100%", height: "40vh", border: "1px solid #fff" };
 
