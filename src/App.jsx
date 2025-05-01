@@ -249,7 +249,7 @@ export default function EggSizerApp() {
     bases[idx].blob = orig.clone();
     bases[idx].poly = orig.clone();
 
-    thisimageRows = newRows.filter(r => r.imgIdx === idx);
+    let thisimageRows = newRows.filter(r => r.imgIdx === idx);
 
     console.log('a');
     const blobList = thisimageRows.map(r => ({
