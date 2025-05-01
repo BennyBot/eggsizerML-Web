@@ -11,10 +11,10 @@ import React, { useEffect, useRef, useState } from "react";
 // • Export CSV dumps the full combined table.
 // -----------------------------------------------------------------------------
 
-const BLOB_MIN_AREA = 2000;
-const BLOB_MAX_AREA = 1_000_000;
-const POLY_MIN_AREA = 18_000;
-const POLY_MAX_AREA = 700_000;
+const BLOB_MIN_AREA = 5000;
+const BLOB_MAX_AREA = 500000;
+const POLY_MIN_AREA = 18000;
+const POLY_MAX_AREA = 700000;
 const PIXELS_PER_MM = 100;
 const CANVAS_STYLE  = { width: "100%", height: "40vh", border: "1px solid #fff" };
 
@@ -38,10 +38,10 @@ export default function EggSizerApp() {
   }, []);
 
   /* --------------------------- state / refs --------------------------- */
-  const [files, setFiles]    = useState([]);   // File[]
-  const [idx,   setIdx]      = useState(0);    // which image displayed
-  const [rows,  setRows]     = useState([]);   // ALL egg rows across images
-  const [bases, setBases]    = useState({});   // {index:{blob:Mat,poly:Mat}}
+  const [files, setFiles] = useState([]);   // File[]
+  const [idx, setIdx] = useState(0);    // which image displayed
+  const [rows, setRows] = useState([]);   // ALL egg rows across images
+  const [bases, setBases] = useState({});   // {index:{blob:Mat,poly:Mat}}
   const [processing, setProcessing] = useState(false);
 
   const canvBlob = useRef();
@@ -53,6 +53,8 @@ export default function EggSizerApp() {
     src.channels() > 1 ? cv.cvtColor(src, g, cv.COLOR_RGBA2GRAY) : src.copyTo(g);
     return g;
   };
+
+
   const autoCanny = (src) => {
     const gray = toGray(src);
     const blur = new cv.Mat();
@@ -62,24 +64,44 @@ export default function EggSizerApp() {
     gray.delete(); blur.delete();
     return dst;
   };
+
+
   const polyApprox = (thresh, orig) => {
     const contours = new cv.MatVector();
     const hierarchy = new cv.Mat();
+    
     cv.findContours(thresh, contours, hierarchy, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE);
+    
     const eggs=[];
-    for(let i=0;i<contours.size();i++){
-      const cnt=contours.get(i);
-      const approx=new cv.Mat();
+    
+    for(let i=0; i < contours.size(); i++){
+      const cnt = contours.get(i);
+      const approx = new cv.Mat();
       cv.approxPolyDP(cnt, approx, 0.005*cv.arcLength(cnt,true), true);
-      const area=cv.contourArea(approx);
-      if(area>=POLY_MIN_AREA && area<=POLY_MAX_AREA){
-        const m=cv.moments(cnt);
-        // extract vertices
-        const pts=[];
-        for(let j=0;j<approx.rows;j++){ const pt=approx.intPtr(j); pts.push({x:pt[0],y:pt[1]}); }
-        eggs.push({ center:{x:m.m10/m.m00,y:m.m01/m.m00}, area:area/PIXELS_PER_MM, polyPts:pts });
+      const area = cv.contourArea(approx);
+      const m = cv.moments(cnt);
+      // extract vertices
+      if(area < POLY_MIN_AREA || area > POLY_MAX_AREA) { cnt.delete(); approx.delete(); continue; }
+      
+      const pts=[];
+      for(let j=0;j<approx.rows;j++) { 
+        const pt = approx.intPtr(j); 
+        pts.push({x: pt[0], y: pt[1]}); 
       }
-      cnt.delete(); approx.delete();
+      console.log(`Number of vertices: ${pts.length}`);
+      eggs.push(
+        { 
+          center:{
+            x: m.m10/m.m00,
+            y: m.m01/m.m00
+          }, 
+          area:area/PIXELS_PER_MM, 
+          polyPts:pts 
+        }
+      );
+      
+      cnt.delete(); 
+      approx.delete();
     }
     contours.delete(); hierarchy.delete();
     return eggs;
