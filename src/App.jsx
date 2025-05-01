@@ -16,7 +16,7 @@ const BLOB_MAX_AREA = 1_000_000;
 const POLY_MIN_AREA = 18_000;
 const POLY_MAX_AREA = 700_000;
 const PIXELS_PER_MM = 100;
-const CANVAS_STYLE  = { width: "45vw", height: "40vh", border: "1px solid #fff" };
+const CANVAS_STYLE  = { width: "100%", height: "40vh", border: "1px solid #fff" };
 
 export default function EggSizerApp() {
   /* -------------------- load OpenCV + blob detector -------------------- */
