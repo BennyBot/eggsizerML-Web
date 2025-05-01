@@ -318,6 +318,8 @@ export default function EggSizerApp() {
     const xBmp = xCss * (canvBlob.current.width / r.width);
     const yBmp = yCss * (canvBlob.current.height / r.height);
 
+    let mat = bases[idx].blob;
+
     const scale = canvBlob.current.width / mat.cols;
 
     const x = xBmp / scale;
@@ -338,6 +340,8 @@ export default function EggSizerApp() {
 
     const xBmp = xCss * (canvBlob.current.width / r.width);
     const yBmp = yCss * (canvBlob.current.height / r.height);
+    
+    let mat = bases[idx].poly;
 
     const scale = canvBlob.current.width / mat.cols;
 
