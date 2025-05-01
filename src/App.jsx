@@ -391,8 +391,7 @@ export default function EggSizerApp() {
         <div className="right">
           {!cvReady && <p className="text-center text-red-600 mt-4">Loading OpenCV …</p>}
           {processing && <p className="text-center mt-2">Processing {files.length} images …</p>}
-          <div className="overflow-x-auto h-[82vh] text-sm">
-            <table className="table-auto w-full border">
+          <table className="data-table">
             <thead className="sticky top-0 bg-gray-100">
               <tr>
                 <th className="px-2 border">Image</th>
@@ -418,8 +417,8 @@ export default function EggSizerApp() {
                 <td className="px-2 border text-right">{r.avg}</td>
                 <td className="px-2 border text-right">{r.confidence.toFixed(2)}</td>
                 <td className="px-2 border text-center"><button className="text-red-600" onClick={()=>removeRow(r.key)}>✖</button></td></tr>))}
-            </tbody></table>
-          </div>
+            </tbody>
+          </table>
         </div>
       </section>
     </div>

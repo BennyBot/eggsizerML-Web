@@ -51,6 +51,7 @@
   grid-template-columns: 1fr 1fr;   /* 50-50 split */
   gap: 0.75rem;
   overflow: hidden;                 /* keeps table scroll neatly */
+  min-height: 0;
 }
 
 /* — left column — */
@@ -58,6 +59,7 @@
   display: grid;
   grid-template-rows: 1fr 1fr;      /* two equal-height rows */
   gap: 0.75rem;
+  min-height: 0;
 }
 
 .canvas-box {
@@ -103,6 +105,7 @@ canvas {
   border-radius: 8px;
   padding: 0.5rem;
   overflow: auto;                   /* table scrolls inside */
+  overflow-y: auto;
 }
 
 /* ===== responsive tweak – single column under 900 px ===== */
