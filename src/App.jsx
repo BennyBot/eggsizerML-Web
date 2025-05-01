@@ -194,8 +194,8 @@ export default function EggSizerApp() {
               id,
               otsu: areaO, 
               blob: areaB, 
-              polycenter: p.center,
-              blobcenter: b.center,
+              polycenter: p?.center ?? {x:0, y:0},
+              blobcenter: b?.center ?? {x:0, y:0},
               avg,
               radius: b?.radius || 30,
               imgIdx: fi
