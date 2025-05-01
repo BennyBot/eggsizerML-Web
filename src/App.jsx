@@ -23,12 +23,12 @@ export default function EggSizerApp() {
   const [cvReady, setCvReady] = useState(false);
   useEffect(() => {
     const core = document.createElement("script");
-    core.src   = import.meta.env.BASE_URL + "opencv.js";
+    core.src = import.meta.env.BASE_URL + "opencv.js";
     core.async = true;
     core.onload = () => {
       cv.onRuntimeInitialized = () => {
         const blob = document.createElement("script");
-        blob.src   = import.meta.env.BASE_URL + "opencvblobdetector.js";
+        blob.src = import.meta.env.BASE_URL + "opencvblobdetector.js";
         blob.async = true;
         blob.onload = () => setCvReady(true);
         document.body.appendChild(blob);
@@ -58,7 +58,7 @@ export default function EggSizerApp() {
   const autoCanny = (src) => {
     const gray = toGray(src);
     const blur = new cv.Mat();
-    const dst  = new cv.Mat();
+    const dst = new cv.Mat();
     cv.GaussianBlur(gray, blur, new cv.Size(5, 5), 0.33);
     cv.threshold(blur, dst, 0, 255, cv.THRESH_BINARY | cv.THRESH_OTSU);
     gray.delete(); blur.delete();
@@ -108,20 +108,41 @@ export default function EggSizerApp() {
   };
 
   const detectBlobs = (src) => {
-    const gray=toGray(src); const bin=new cv.Mat();
-    cv.threshold(gray,bin,0,255,cv.THRESH_BINARY|cv.THRESH_OTSU);
-    const centers=findBlobs(gray,bin,{faster:true,filterByArea:true,minArea:BLOB_MIN_AREA,maxArea:BLOB_MAX_AREA});
+    const gray = toGray(src);
+    const bin = new cv.Mat();
+    cv.threshold(gray, bin, 0, 255, cv.THRESH_BINARY | cv.THRESH_OTSU);
+    const centers = findBlobs(gray, bin, {
+      faster:true, 
+      filterByArea:true, 
+      minArea:BLOB_MIN_AREA,
+      maxArea:BLOB_MAX_AREA
+    });
+
     gray.delete(); bin.delete();
-    return centers.map(c=>({ center:{x:c.location.x,y:c.location.y}, radius:c.radius, area:Math.PI*c.radius*c.radius/PIXELS_PER_MM }));
+
+    return centers.map(
+      c => (
+        { 
+          center: {
+            x: c.location.x, 
+            y:c.location.y
+          }, 
+          radius: c.radius, 
+          area: Math.PI * c.radius * c.radius / PIXELS_PER_MM 
+        }
+      )
+    );
   };
 
   /* overlays */
   const drawBlobOverlay=(mat,list)=>{
-    list.forEach(e=>{
-      cv.circle(mat,new cv.Point(e.center.x,e.center.y),e.radius||30,new cv.Scalar(255,0,0,255),2);
-      cv.putText(mat,String(e.id),new cv.Point(e.center.x,e.center.y),cv.FONT_HERSHEY_SIMPLEX,1,new cv.Scalar(255,0,0,255),3);
+    list.forEach(e => {
+      cv.circle(mat, new cv.Point(e.blobcenter.x, e.blobcenter.y), e.radius || 30, new cv.Scalar(255,0,0,255), 2);
+      cv.putText(mat, String(e.id), new cv.Point(e.blobcenter.x,e.blobcenter.y), cv.FONT_HERSHEY_SIMPLEX, 1, new cv.Scalar(255,0,0,255), 3);
     });
   };
+
+
   const drawPolyOverlay=(mat,list)=>{
     list.forEach(e=>{
       if(e.polyPts){
@@ -130,38 +151,70 @@ export default function EggSizerApp() {
           cv.line(mat,new cv.Point(p1.x,p1.y),new cv.Point(p2.x,p2.y),new cv.Scalar(0,150,0,255),2);
         }
       }
-      cv.putText(mat,String(e.id),new cv.Point(e.center.x,e.center.y),cv.FONT_HERSHEY_SIMPLEX,1,new cv.Scalar(0,150,0,255),3);
+      cv.putText(
+        mat,
+        String(e.id),
+        new cv.Point(e.polycenter.x, e.polycenter.y),
+        cv.FONT_HERSHEY_SIMPLEX,
+        1,
+        new cv.Scalar(0,150,0,255),
+        3);
     });
   };
+
+
   /* ------------------ batch process all files -------------------------- */
   const processAll = async (fileList) => {
-    setProcessing(true); const newRows=[]; const newBases={};
-    for(let fi=0;fi<fileList.length;fi++){
-      const file=fileList[fi];
-      await new Promise(res=>{
-        const img=new Image();
-        img.onload=()=>{
-          const orig=cv.imread(img);
-          const otsu=autoCanny(orig);
-          const polyList=polyApprox(otsu,orig);
-          const blobList=detectBlobs(orig);
-          const len=Math.max(polyList.length,blobList.length);
-          const combined=[];
-          for(let i=0;i<len;i++){
-            const p=polyList[i];const b=blobList[i];const id=i+1;
-            const areaO=p?.area||"";const areaB=b?.area.toFixed(2)||"";
-            const avg=areaO&&areaB?((areaO+Number(areaB))/2).toFixed(2):"";
-            const row={key:`${file.name}-${id}`,img:file.name,id,otsu:areaO,blob:areaB,avg,center:(b?.center)||(p?.center),radius:b?.radius||30,imgIdx:fi};
-            newRows.push(row); combined.push(row);
+    setProcessing(true); 
+    const newRows = []; 
+    const newBases = {};
+
+    for(let fi=0; fi<fileList.length; fi++) {
+      const file = fileList[fi];
+      await new Promise( (res) => {
+        const img = new Image();
+
+        img.onload = () => {
+          const orig = cv.imread(img);
+          const otsu = autoCanny(orig);
+          const polyList = polyApprox(otsu,orig);
+          const blobList = detectBlobs(orig);
+          const len = Math.max(polyList.length,blobList.length);
+          const combined = [];
+          for(let i=0; i<len; i++){
+            const p = polyList[i];
+            const b = blobList[i];
+            const id=i+1;
+            const areaO = p?.area||"NONE";
+            const areaB = b?.area.toFixed(2)||"NONE";
+            const avg = areaO && areaB ? ((areaO+Number(areaB))/2).toFixed(2) : (areaO ? areaO : areaB);
+            const row = {
+              key: `${file.name}-${id}`,
+              img: file.name,
+              id,
+              otsu: areaO, 
+              blob: areaB, 
+              polycenter: p.center,
+              blobcenter: b.center,
+              avg,
+              radius: b?.radius || 30,
+              imgIdx: fi
+            };
+            newRows.push(row);
+            combined.push(row);
           }
-          const blobMat=orig.clone(); const polyMat=orig.clone();
-          drawBlobOverlay(blobMat,combined); drawPolyOverlay(polyMat,combined);
+          const blobMat = orig.clone();
+          const polyMat = orig.clone();
+          drawBlobOverlay(blobMat, combined); 
+          drawPolyOverlay(polyMat, combined);
           newBases[fi]={blob:blobMat,poly:polyMat};
           orig.delete(); otsu.delete(); res();
         }; img.src=URL.createObjectURL(file);
       });
     }
-    setRows(newRows); setBases(newBases); setProcessing(false);
+    setRows(newRows);
+    setBases(newBases); 
+    setProcessing(false);
   };
 
   /* ------------------ handle file selection --------------------------- */

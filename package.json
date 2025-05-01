@@ -10,7 +10,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist"
+    "deploy": "gh-pages -d dist",
+    "full": "git add * && git commit -m 'deploy' && git push && npm run deploy"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.4",
