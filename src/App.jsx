@@ -1,8 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
 
 // -------------------------------------------------------------------------
-// EggSizer CV (Web) – 2‑panel UI + interactive egg removal **and** image
-// navigation (Previous / Next buttons).
+// EggSizer CV (Web)
+// • 2‑panel UI, prev/next navigation, interactive deletion.
+// • When a row is deleted (via ✖ button or canvas click) the overlays on both
+//   canvases are redrawn to match the current table.
 // -------------------------------------------------------------------------
 
 const BLOB_MIN_AREA = 2000;
@@ -30,12 +32,16 @@ export default function EggSizerApp() {
   }, []);
 
   /* --------------------------- state / refs ----------------------------- */
-  const [files, setFiles]     = useState([]);   // File objects
-  const [idx,   setIdx]       = useState(0);    // current index in files
-  const [results, setResults] = useState([]);   // table rows for current image
+  const [files, setFiles]   = useState([]);
+  const [idx,   setIdx]     = useState(0);
+  const [rows,  setRows]    = useState([]);  // table rows
 
   const canvBlob = useRef();
   const canvPoly = useRef();
+
+  // base images without overlays – so we can redraw after deletion
+  const baseBlob = useRef(null);
+  const basePoly = useRef(null);
 
   /* --------------------------- helpers ---------------------------------- */
   const toGray = (src) => {
@@ -59,7 +65,7 @@ export default function EggSizerApp() {
     const hierarchy = new cv.Mat();
     cv.findContours(thresh, contours, hierarchy, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE);
     const dst = orig.clone();
-    const areas = [];
+    const eggs = [];
     let label = 0;
     for (let i = 0; i < contours.size(); ++i) {
       const cnt = contours.get(i);
@@ -68,17 +74,13 @@ export default function EggSizerApp() {
       const area = cv.contourArea(approx);
       if (area >= POLY_MIN_AREA && area <= POLY_MAX_AREA) {
         label++;
-        areas.push(area / PIXELS_PER_MM);
-        const mv = new cv.MatVector(); mv.push_back(approx);
-        cv.drawContours(dst, mv, -1, new cv.Scalar(0,150,0,255), 2);
         const m = cv.moments(cnt); const cx = m.m10/m.m00; const cy = m.m01/m.m00;
-        cv.putText(dst, String(label), new cv.Point(cx, cy), cv.FONT_HERSHEY_SIMPLEX, 1, new cv.Scalar(0,150,0,255), 3);
-        mv.delete();
+        eggs.push({ idx: label, center:{x:cx,y:cy}, area: area/PIXELS_PER_MM });
       }
       cnt.delete(); approx.delete();
     }
     contours.delete(); hierarchy.delete();
-    return { dst, areas };
+    return { dst, eggs };
   };
 
   const detectBlobs = (src) => {
@@ -87,53 +89,104 @@ export default function EggSizerApp() {
     cv.threshold(gray, bin, 0, 255, cv.THRESH_BINARY | cv.THRESH_OTSU);
     const params = { faster:true, filterByArea:true, minArea:BLOB_MIN_AREA, maxArea:BLOB_MAX_AREA };
     const centers = findBlobs(gray, bin, params);
-    const dst = src.clone();
-    const eggs = [];
-    centers.forEach((c,i)=>{
-      cv.circle(dst, new cv.Point(c.location.x, c.location.y), c.radius, new cv.Scalar(255,0,0,255), 2);
-      cv.putText(dst,String(i+1), new cv.Point(c.location.x, c.location.y), cv.FONT_HERSHEY_SIMPLEX,1,new cv.Scalar(255,0,0,255),3);
-      eggs.push({center:{x:c.location.x,y:c.location.y}, radius:c.radius, area: Math.PI*c.radius*c.radius/PIXELS_PER_MM, label:i+1});
-    });
+    const eggs = centers.map((c,i)=>({ idx:i+1, center:{x:c.location.x,y:c.location.y}, radius:c.radius, area: Math.PI*c.radius*c.radius/PIXELS_PER_MM }));
     gray.delete(); bin.delete();
-    return { dst, eggs };
+    return eggs;
   };
 
-  const processCurrent = () => {
+  /* ------------------ draw helpers (overlay circles/labels) -------------- */
+  const drawBlobOverlay = (dstMat, eggList) => {
+    eggList.forEach(e=>{
+      cv.circle(dstMat, new cv.Point(e.center.x, e.center.y), e.radius, new cv.Scalar(255,0,0,255), 2);
+      cv.putText(dstMat, String(e.idx), new cv.Point(e.center.x, e.center.y), cv.FONT_HERSHEY_SIMPLEX, 1, new cv.Scalar(255,0,0,255), 3);
+    });
+  };
+  const drawPolyOverlay = (dstMat, eggList) => {
+    eggList.forEach(e=>{
+      cv.putText(dstMat, String(e.idx), new cv.Point(e.center.x, e.center.y), cv.FONT_HERSHEY_SIMPLEX, 1, new cv.Scalar(0,150,0,255), 3);
+    });
+  };
+
+  /* ------------------ process current image ----------------------------- */
+  const processImage = () => {
     if (!files.length) return;
     const file = files[idx];
     const img = new Image();
     img.onload = () => {
       const orig = cv.imread(img);
+
+      // polygon data
       const otsu = autoCanny(orig);
-      const { dst: polyDst, areas: otsuA } = polyApprox(otsu, orig);
-      const { dst: blobDst, eggs } = detectBlobs(orig);
+      const { dst: polyBase, eggs: polyEggs } = polyApprox(otsu, orig);
 
-      cv.imshow(canvBlob.current, blobDst);
-      cv.imshow(canvPoly.current, polyDst);
+      // blob data
+      const blobEggs = detectBlobs(orig);
+      const blobBase = orig.clone();
 
-      const newRows = eggs.map((e, i) => {
-        const o = otsuA[i] ?? "";
-        const b = e.area.toFixed(2);
-        const avg = o && b ? ((o + Number(b))/2).toFixed(2):"";
-        return { key:`${file.name}-${i+1}`, img:file.name, id:i+1, otsu:o, blob:b, avg, center:e.center, radius:e.radius };
-      });
-      setResults(newRows);
-      orig.delete(); otsu.delete(); polyDst.delete(); blobDst.delete();
+      // merge by index
+      const len = Math.max(polyEggs.length, blobEggs.length);
+      const merged = [];
+      for(let i=0;i<len;i++){
+        const p = polyEggs[i]; const b = blobEggs[i];
+        if(!p && !b) continue;
+        const areaO = p?.area ?? "";
+        const areaB = b?.area.toFixed(2) ?? "";
+        const avg = areaO && areaB ? ((areaO+Number(areaB))/2).toFixed(2):"";
+        merged.push({
+          key:`${file.name}-${i+1}`,
+          img:file.name,
+          id:i+1,
+          otsu:areaO,
+          blob:areaB,
+          avg,
+          center:b?.center || p?.center,
+          radius:b?.radius || 30 // default radius for hit test
+        });
+      }
+      // draw overlays
+      drawBlobOverlay(blobBase, merged);
+      drawPolyOverlay(polyBase, merged);
+
+      cv.imshow(canvBlob.current, blobBase);
+      cv.imshow(canvPoly.current, polyBase);
+
+      // keep bases for later redraw
+      baseBlob.current && baseBlob.current.delete();
+      basePoly.current && basePoly.current.delete();
+      baseBlob.current = blobBase;
+      basePoly.current = polyBase;
+
+      setRows(merged);
+
+      orig.delete(); otsu.delete();
     };
     img.src = URL.createObjectURL(file);
   };
 
-  /* re‑process when idx or files changes */
-  useEffect(processCurrent, [idx, files]);
+  useEffect(processImage, [files, idx]);
 
-  /* deletion util */
-  const removeRow = (key) => setResults(r=>r.filter(row=>row.key!==key));
+  /* ------------------ deletion ----------------------------- */
+  const redrawCanvases = (list) => {
+    if(!baseBlob.current || !basePoly.current) return;
+    const b = baseBlob.current.clone();
+    const p = basePoly.current.clone();
+    drawBlobOverlay(b, list);
+    drawPolyOverlay(p, list);
+    cv.imshow(canvBlob.current, b);
+    cv.imshow(canvPoly.current, p);
+    b.delete(); p.delete();
+  };
+
+  const removeRow = (key) => {
+    const filtered = rows.filter(r=>r.key!==key);
+    setRows(filtered);
+    redrawCanvases(filtered);
+  };
 
   const handleCanvasClick = (e) => {
     const rect = e.target.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    const hit = results.find(r=>{const dx=x-r.center.x,dy=y-r.center.y;return dx*dx+dy*dy<=r.radius*r.radius});
+    const x = e.clientX-rect.left, y = e.clientY-rect.top;
+    const hit = rows.find(r=>{const dx=x-r.center.x,dy=y-r.center.y;return dx*dx+dy*dy<=r.radius*r.radius;});
     if(hit) removeRow(hit.key);
   };
 
