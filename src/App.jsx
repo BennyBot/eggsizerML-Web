@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import "./App.css"
-
-var JSZip = require("jszip");
+import JSZip from "jszip";
 // -----------------------------------------------------------------------------
 // EggSizer CV (Web) – batch‑first workflow
 // • When a file set is chosen we synchronously process **every** image, build one
