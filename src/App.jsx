@@ -249,18 +249,23 @@ export default function EggSizerApp() {
     bases[idx].blob = orig.clone();
     bases[idx].poly = orig.clone();
 
-    const blobList = newRows.filter(r => r.imgIdx === idx).map(r => ({
-      center: {x:r.blobcenter.x, y:r.blobcenter.y},
+    thisimageRows = newRows.filter(r => r.imgIdx === idx);
+
+    console.log('a');
+    const blobList = thisimageRows.map(r => ({
+      center: {x: r.blobcenter.x, y:r.blobcenter.y},
       radius: r.radius,
     }));
-    const polyList = newRows.filter(r => r.imgIdx === idx).map(r => ({
-      center: {x:r.polycenter.x, y:r.polycenter.y},
+    console.log('b');
+    const polyList = thisimageRows.map(r => ({
+      center: {x: r.polycenter.x, y: r.polycenter.y},
       polyPts: r.polyPts,
     }));
-
+    console.log('c');
     drawBlobOverlay(bases[idx].blob, blobList);
+    console.log('d');
     drawPolyOverlay(bases[idx].poly, polyList);
-
+    console.log('e');
     cv.imshow(canvBlob.current, bases[idx].blob);
     cv.imshow(canvPoly.current, bases[idx].poly);
     // update the bases
