@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import "./App.css"
+
+var JSZip = require("jszip");
 // -----------------------------------------------------------------------------
 // EggSizer CV (Web) – batch‑first workflow
 // • When a file set is chosen we synchronously process **every** image, build one
@@ -365,6 +367,58 @@ export default function EggSizerApp() {
     a.click();
   }
 
+  const exportImages = () => {
+    // we want to output all of the images with the blobs and polygons drawn on them
+    // For example, if we have image A, we want to save image 'A-blobs.png' and 'A-polygons.png'
+
+    // we can use the cv.imwrite function to do this, but we need to convert the Mat to a PNG first
+
+    // additionally, we want this to be a zip file, so we need to use JSZip
+    // https://stuk.github.io/jszip/documentation/examples/zip.html
+
+    // we can use the JSZip library to create a zip file and add the images to it
+
+
+    const imgList = Object.keys(bases).map(i => {
+      const base = bases[i];
+      const blobImg = base.blob.clone();
+      const polyImg = base.poly.clone();
+      const origImg = base.orig.clone();
+      const filename = files[i].name.split(".")[0];
+      const blobName = `${filename}-blobs.png`;
+      const polyName = `${filename}-polygons.png`;
+      const origName = `${filename}-
+original.png`;
+      const blobData = cv.imencode(".png", blobImg);
+      const polyData = cv.imencode(".png", polyImg);
+      const origData = cv.imencode(".png", origImg);
+      blobImg.delete();
+      polyImg.delete();
+      origImg.delete();
+      return {
+        blob: {name: blobName, data: blobData},
+        poly: {name: polyName, data: polyData},
+        orig: {name: origName, data: origData}
+      };
+    });
+
+    const zip = new JSZip();
+    imgList.forEach(img => {
+      zip.file(img.blob.name, img.blob.data);
+      zip.file(img.poly.name, img.poly.data);
+      zip.file(img.orig.name, img.orig.data);
+
+    });
+    zip.generateAsync({type:"blob"}).then(function(content) {
+      // see FileSaver.js
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(content);
+      a.download = "egg_images.zip";
+      a.click();
+    });
+  }
+
+
   /* ------------------ UI -------------------------------- */
   return (
     <div className="page">
@@ -377,14 +431,17 @@ export default function EggSizerApp() {
         <button onClick={()=>setIdx(i=>Math.min(files.length-1,i+1))} disabled={idx>=files.length-1 || processing} className="px-3 py-1 bg-gray-800 rounded disabled:opacity-40">Next Image</button>
         <button onClick={exportCSV} disabled={!rows.length} className="blue">Export CSV</button>
         <button onClick={exportJSON} disabled={!rows.length} className="blue">Export JSON</button>
+        <button onClick={exportImages} disabled={!rows.length} className="green">Export Images</button>
       </div>
       
       <section className="main">
         <div className="left">
-          <div className="space-y-4">
-            <p className="font-semibold mb-1">Blob Processed (click egg to remove)</p>
+          <div className="canvas-group">
+            <p className="caption">Blob Processed (click egg to remove)</p>
             <div className="canvas-box"><canvas ref={canvBlob} style={CANVAS_STYLE} onClick={clickBlobCanvas}/></div>
-            <p className="font-semibold mb-1">Polygon Approx</p>
+          </div>
+          <div className="canvas-group">
+            <p className="caption">Polygon Approx</p>
             <div className="canvas-box"><canvas ref={canvPoly} style={CANVAS_STYLE} onClick={clickPolyCanvas}/></div>
           </div>
         </div>
