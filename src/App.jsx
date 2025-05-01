@@ -144,7 +144,7 @@ export default function EggSizerApp() {
   /* overlays */
   const drawBlobOverlay=(mat,list)=>{
     list.forEach(e => {
-      let color = e.removed ? new cv.Scalar(0,0,255,255) : new cv.Scalar(0,150,0,255);
+      let color = e.removed ? new cv.Scalar(255,0,0,255) : new cv.Scalar(0,150,0,255);
       cv.circle(mat, new cv.Point(e.blobcenter.x, e.blobcenter.y), e.radius || 30, color, 2);
       cv.putText(mat, String(e.id), new cv.Point(e.blobcenter.x,e.blobcenter.y), cv.FONT_HERSHEY_SIMPLEX, 1, color, 3);
     });
@@ -153,7 +153,7 @@ export default function EggSizerApp() {
 
   const drawPolyOverlay=(mat,list)=>{
     list.forEach(e=>{
-      let color = e.removed ? new cv.Scalar(0,0,255,255) : new cv.Scalar(0,150,0,255);
+      let color = e.removed ? new cv.Scalar(255,0,0,255) : new cv.Scalar(0,150,0,255);
       if(e.polyPts){
         for(let i=0;i<e.polyPts.length;i++){
           const p1=e.polyPts[i]; const p2=e.polyPts[(i+1)%e.polyPts.length];
@@ -397,11 +397,15 @@ export default function EggSizerApp() {
             <th className="px-2 border">Blob</th>
             <th className="px-2 border">Avg</th>
             <th className="px-2 border">Confidence</th>
+            <th className="px-2 border">Toggle</th>
           </tr>
         </thead>
         <tbody>
           {
-          rows.map( r => (<tr key={r.key}><td className="px-2 border whitespace-nowrap">{r.img}</td><td className="px-2 border text-center">{r.id}</td><td className="px-2 border text-right">{r.otsu}</td><td className="px-2 border text-right">{r.blob}</td><td className="px-2 border text-right">{r.avg}</td><td className="px-2 border text-center"><button className="text-red-600" onClick={()=>removeRow(r.key)}>✖</button></td></tr>))}
+            // filter rows out to only show the current image in the table
+          rows.filter(
+            r => r.imgIdx === idx
+          ).map( r => (<tr key={r.key}><td className="px-2 border whitespace-nowrap">{r.img}</td><td className="px-2 border text-center">{r.id}</td><td className="px-2 border text-right">{r.otsu}</td><td className="px-2 border text-right">{r.blob}</td><td className="px-2 border text-right">{r.avg}</td><td className="px-2 border text-center"><button className="text-red-600" onClick={()=>removeRow(r.key)}>✖</button></td></tr>))}
         </tbody></table>
       </div>
     </div>
