@@ -370,7 +370,9 @@ export default function EggSizerApp() {
     <div className="p-4">
       <h1 className="text-2xl font-bold mb-4 text-center">EggSizerML (Web)</h1>
       <div className="flex flex-wrap gap-2 justify-center mb-4">
-        <input type="file" multiple accept="image/*" disabled={!cvReady||processing} onChange={onFileChange}
+        <input type="file" webkitdirectory directory multiple accept="image/*" disabled={!cvReady||processing} onChange={onFileChange}
+               className="file:rounded-lg file:border-0 file:bg-gray-800 file:text-white disabled:opacity-40" />
+        <input type="folder" multiple accept="image/*" disabled={!cvReady||processing} onChange={onFileChange}
                className="file:rounded-lg file:border-0 file:bg-gray-800 file:text-white disabled:opacity-40" />
         <button onClick={()=>setIdx(i=>Math.max(0,i-1))} disabled={idx<=0 || processing} className="px-3 py-1 bg-gray-200 rounded disabled:opacity-40">Previous Image</button>
         <button onClick={()=>setIdx(i=>Math.min(files.length-1,i+1))} disabled={idx>=files.length-1 || processing} className="px-3 py-1 bg-gray-200 rounded disabled:opacity-40">Next Image</button>
