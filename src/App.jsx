@@ -409,7 +409,15 @@ export default function EggSizerApp() {
                 // filter rows out to only show the current image in the table
               rows.filter(
                 r => r.imgIdx === idx
-              ).map( r => (<tr key={r.key}><td className="px-2 border whitespace-nowrap">{r.img}</td><td className="px-2 border text-center">{r.id}</td><td className="px-2 border text-right">{r.otsu}</td><td className="px-2 border text-right">{r.blob}</td><td className="px-2 border text-right">{r.avg}</td><td className="px-2 border text-center"><button className="text-red-600" onClick={()=>removeRow(r.key)}>✖</button></td></tr>))}
+              ).map( r => (
+              <tr key={r.key}>
+                <td className="px-2 border whitespace-nowrap">{r.img}</td>
+                <td className="px-2 border text-center">{r.id}</td>
+                <td className="px-2 border text-right">{r.otsu}</td>
+                <td className="px-2 border text-right">{r.blob}</td>
+                <td className="px-2 border text-right">{r.avg}</td>
+                <td className="px-2 border text-right">{r.confidence.toFixed(2)}</td>
+                <td className="px-2 border text-center"><button className="text-red-600" onClick={()=>removeRow(r.key)}>✖</button></td></tr>))}
             </tbody></table>
           </div>
         </div>
