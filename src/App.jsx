@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-
+import "./App.css"
 // -----------------------------------------------------------------------------
 // EggSizer CV (Web) – batch‑first workflow
 // • When a file set is chosen we synchronously process **every** image, build one
@@ -367,9 +367,10 @@ export default function EggSizerApp() {
 
   /* ------------------ UI -------------------------------- */
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4 text-center">EggSizerML (Web)</h1>
-      <div className="flex flex-wrap gap-2 justify-center mb-4">
+    <div className="page">
+      {/*header*/}
+      <h1 className="title">EggsizerML Web</h1>
+      <div className="btn-row">
         <input type="file" webkitdirectory directory multiple accept="image/*" disabled={!cvReady||processing} onChange={onFileChange}
                className="file:rounded-lg file:border-0 file:bg-gray-800 file:text-white disabled:opacity-40" />
         <input type="folder" multiple accept="image/*" disabled={!cvReady||processing} onChange={onFileChange}
@@ -379,37 +380,40 @@ export default function EggSizerApp() {
         <button onClick={exportCSV} disabled={!rows.length} className="px-3 py-1 bg-blue-600 text-white rounded disabled:opacity-40">Export CSV</button>
         <button onClick={exportJSON} disabled={!rows.length} className="px-3 py-1 bg-blue-600 text-white rounded disabled:opacity-40">Export JSON</button>
       </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-4">
-          <div><p className="font-semibold mb-1">Blob Processed (click egg to remove)</p><canvas ref={canvBlob} style={CANVAS_STYLE} onClick={clickBlobCanvas}/></div>
-          <div><p className="font-semibold mb-1">Polygon Approx</p><canvas ref={canvPoly} style={CANVAS_STYLE} onClick={clickPolyCanvas}/></div>
+      
+      <section className="main">
+        <div className="left">
+          <div className="space-y-4">
+            <div className="canvas-box"><p className="font-semibold mb-1">Blob Processed (click egg to remove)</p><canvas ref={canvBlob} style={CANVAS_STYLE} onClick={clickBlobCanvas}/></div>
+            <div className="canvas-box"><p className="font-semibold mb-1">Polygon Approx</p><canvas ref={canvPoly} style={CANVAS_STYLE} onClick={clickPolyCanvas}/></div>
+          </div>
         </div>
-        
-      </div>
-      {!cvReady && <p className="text-center text-red-600 mt-4">Loading OpenCV …</p>}
-      {processing && <p className="text-center mt-2">Processing {files.length} images …</p>}
-      <div className="overflow-x-auto h-[82vh] text-sm">
-        <table className="table-auto w-full border">
-        <thead className="sticky top-0 bg-gray-100">
-          <tr>
-            <th className="px-2 border">Image</th>
-            <th className="px-2 border">Egg #</th>
-            <th className="px-2 border">Otsu</th>
-            <th className="px-2 border">Blob</th>
-            <th className="px-2 border">Avg</th>
-            <th className="px-2 border">Confidence</th>
-            <th className="px-2 border">Toggle</th>
-          </tr>
-        </thead>
-        <tbody>
-          {
-            // filter rows out to only show the current image in the table
-          rows.filter(
-            r => r.imgIdx === idx
-          ).map( r => (<tr key={r.key}><td className="px-2 border whitespace-nowrap">{r.img}</td><td className="px-2 border text-center">{r.id}</td><td className="px-2 border text-right">{r.otsu}</td><td className="px-2 border text-right">{r.blob}</td><td className="px-2 border text-right">{r.avg}</td><td className="px-2 border text-center"><button className="text-red-600" onClick={()=>removeRow(r.key)}>✖</button></td></tr>))}
-        </tbody></table>
-      </div>
+        <div className="right">
+          {!cvReady && <p className="text-center text-red-600 mt-4">Loading OpenCV …</p>}
+          {processing && <p className="text-center mt-2">Processing {files.length} images …</p>}
+          <div className="overflow-x-auto h-[82vh] text-sm">
+            <table className="table-auto w-full border">
+            <thead className="sticky top-0 bg-gray-100">
+              <tr>
+                <th className="px-2 border">Image</th>
+                <th className="px-2 border">Egg #</th>
+                <th className="px-2 border">Otsu</th>
+                <th className="px-2 border">Blob</th>
+                <th className="px-2 border">Avg</th>
+                <th className="px-2 border">Confidence</th>
+                <th className="px-2 border">Toggle</th>
+              </tr>
+            </thead>
+            <tbody>
+              {
+                // filter rows out to only show the current image in the table
+              rows.filter(
+                r => r.imgIdx === idx
+              ).map( r => (<tr key={r.key}><td className="px-2 border whitespace-nowrap">{r.img}</td><td className="px-2 border text-center">{r.id}</td><td className="px-2 border text-right">{r.otsu}</td><td className="px-2 border text-right">{r.blob}</td><td className="px-2 border text-right">{r.avg}</td><td className="px-2 border text-center"><button className="text-red-600" onClick={()=>removeRow(r.key)}>✖</button></td></tr>))}
+            </tbody></table>
+          </div>
+        </div>
+      </section>
     </div>
     
   );

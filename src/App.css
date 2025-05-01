@@ -1,47 +1,72 @@
-#root {
-  max-width: 100%;
-  margin: 0 auto;
-  padding: 2rem;
+/* ===== page-level ===== */
+.page {
+  height: 100vh;                 /* full viewport */
+  display: grid;
+  grid-template-rows: auto auto 1fr;  /* title | buttons | main */
+  gap: 0.75rem;
+  padding: 0.75rem;
+  box-sizing: border-box;
+  font-family: system-ui, sans-serif;
+}
+
+.title {
   text-align: center;
+  font-size: clamp(1.5rem, 3vw, 2.2rem);
+  margin: 0;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+/* ===== button row ===== */
+.btn-row {
+  display: flex;
+  justify-content: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;               /* wraps nicely on narrow screens */
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.btn-row button {
+  padding: 0.4rem 0.9rem;
+  border-radius: 8px;
+  border: 1px solid #888;
+  background: #f7f7f7;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-row button:hover { background: #e7e7e7; }
+
+/* ===== main 2-column area ===== */
+.main {
+  display: grid;
+  grid-template-columns: 1fr 1fr;   /* 50-50 split */
+  gap: 0.75rem;
+  overflow: hidden;                 /* keeps table scroll neatly */
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+/* — left column — */
+.left {
+  display: grid;
+  grid-template-rows: 1fr 1fr;      /* two equal-height rows */
+  gap: 0.75rem;
 }
 
-.card {
-  padding: 2em;
+.canvas-box {
+  border: 2px solid #333;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;              /* center any placeholder text */
+  justify-content: center;
+  overflow: hidden;                 /* canvases won’t leak out */
 }
 
-.read-the-docs {
-  color: #888;
+/* — right column — */
+.right {
+  border: 2px solid #333;
+  border-radius: 8px;
+  padding: 0.5rem;
+  overflow: auto;                   /* table scrolls inside */
 }
 
-table, th, td {
-  border: 1px solid #ddd;
-  border-collapse: collapse;
+/* ===== responsive tweak – single column under 900 px ===== */
+@media (max-width: 900px) {
+  .main { grid-template-columns: 1fr; }
+  .right { max-height: 45vh; }      /* avoid huge table on phones */
 }
