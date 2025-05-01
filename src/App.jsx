@@ -349,7 +349,7 @@ export default function EggSizerApp() {
     const y = yBmp / scale;
     console.log(`Poly click at (${x},${y})`);
     const hit = rows.find(
-      row => row.imgIdx === idx && ((x-row.polycenter.x)**2 + (y-row.polycenter.y)**2 <= row.radius**2)
+      row => row.imgIdx === idx && ((x-row.blobcenter.x)**2 + (y-row.blobcenter.y)**2 <= row.radius**2)
     );
     console.log(`Hit: ${hit ?? "none"}`);
     if(hit) removeRow(hit.key);
