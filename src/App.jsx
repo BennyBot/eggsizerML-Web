@@ -236,8 +236,25 @@ export default function EggSizerApp() {
     drawBlobOverlay(bases[idx].blob, group); drawPolyOverlay(bases[idx].poly, group);
     cv.imshow(canvBlob.current,bases[idx].blob); cv.imshow(canvPoly.current,bases[idx].poly);
   };
-  const clickCanvas=(e)=>{const r=canvBlob.current.getBoundingClientRect();const x=e.clientX-r.left,y=e.clientY-r.top;const hit=rows.find(row=>row.imgIdx===idx&&((x-row.center.x)**2+(y-row.center.y)**2<=row.radius**2));if(hit) removeRow(hit.key);};
+  const clickBlobCanvas = (e) => {
+    const r = canvBlob.current.getBoundingClientRect();
+    const x = e.clientX - r.left;
+    const y = e.clientY - r.top;
+    const hit = rows.find(
+      row => row.imgIdx === idx && ((x-row.blobcenter.x)**2 + (y-row.blobcenter.y)**2 <= row.radius**2)
+    );
+    if(hit) removeRow(hit.key);
+  };
 
+  const clickPolyCanvas = (e) => {
+    const r = canvPoly.current.getBoundingClientRect();
+    const x = e.clientX - r.left;
+    const y = e.clientY - r.top;
+    const hit = rows.find(
+      row => row.imgIdx === idx && ((x-row.polycenter.x)**2 + (y-row.polycenter.y)**2 <= row.radius**2)
+    );
+    if(hit) removeRow(hit.key);
+  }
   /* ------------------ CSV export ---------------------- */
   const exportCSV=()=>{if(!rows.length) return;const header="Image,Egg,Otsu(mm²),Blob(mm²),Avg(mm²)\n";const body=rows.map(r=>`${r.img},${r.id},${r.otsu},${r.blob},${r.avg}`).join("\n");const b=new Blob([header+body],{type:"text/csv"});const a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="egg_sizes.csv";a.click();};
 
@@ -255,8 +272,8 @@ export default function EggSizerApp() {
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-4">
-          <div><p className="font-semibold mb-1">Blob Processed (click egg to remove)</p><canvas ref={canvBlob} style={CANVAS_STYLE} onClick={clickCanvas}/></div>
-          <div><p className="font-semibold mb-1">Polygon Approx</p><canvas ref={canvPoly} style={CANVAS_STYLE}/></div>
+          <div><p className="font-semibold mb-1">Blob Processed (click egg to remove)</p><canvas ref={canvBlob} style={CANVAS_STYLE} onClick={clickBlobCanvas}/></div>
+          <div><p className="font-semibold mb-1">Polygon Approx</p><canvas ref={canvPoly} style={CANVAS_STYLE} onClick={clickPolyCanvas}/></div>
         </div>
         <div className="overflow-x-auto h-[82vh] text-sm">
           <table className="table-auto w-full border"><thead className="sticky top-0 bg-gray-100"><tr><th className="px-2 border">Image</th><th className="px-2 border">Egg #</th><th className="px-2 border">Otsu</th><th className="px-2 border">Blob</th><th className="px-2 border">Avg</th><th className="px-2 border"></th></tr></thead><tbody>
