@@ -54,6 +54,13 @@ export default function EggSizerApp() {
     return g;
   };
 
+  const calcConfidence = (blobArea, avgArea) => {
+    if(blobArea === "NONE" || avgArea === "NONE") return 0.5;
+    const blob = Number(blobArea);
+    const avg = Number(avgArea);
+    const confidence = 1 - Math.pow(Math.abs(blob - avg) / avg, 0.5);
+    return Math.max(0, Math.min(1, confidence));
+  }
 
   const autoCanny = (src) => {
     const gray = toGray(src);
@@ -203,7 +210,7 @@ export default function EggSizerApp() {
               imgIdx: fi,
               polyPts: p?.polyPts || [],
               removed: false,
-              confidence: 0.5
+              confidence: calcConfidence(areaB, avg)
             };
             newRows.push(row);
             combined.push(row);
@@ -246,6 +253,13 @@ export default function EggSizerApp() {
     newRows.push(foundRow); // add it back to the list
     setRows(newRows);
     */
+
+    const newRows = rows.map(r => {
+      if(r.key === key) {
+        r.removed = !r.removed; // we can use the same logic for unremoving a row
+      }
+      return r;
+    });
 
     // now, we need to update the bases using base.orig, and then redrawing the blob and poly without the deleted egg
     const base = bases[idx];
@@ -374,8 +388,20 @@ export default function EggSizerApp() {
       {!cvReady && <p className="text-center text-red-600 mt-4">Loading OpenCV …</p>}
       {processing && <p className="text-center mt-2">Processing {files.length} images …</p>}
       <div className="overflow-x-auto h-[82vh] text-sm">
-        <table className="table-auto w-full border"><thead className="sticky top-0 bg-gray-100"><tr><th className="px-2 border">Image</th><th className="px-2 border">Egg #</th><th className="px-2 border">Otsu</th><th className="px-2 border">Blob</th><th className="px-2 border">Avg</th><th className="px-2 border"></th></tr></thead><tbody>
-          {rows.map(r=>(<tr key={r.key}><td className="px-2 border whitespace-nowrap">{r.img}</td><td className="px-2 border text-center">{r.id}</td><td className="px-2 border text-right">{r.otsu}</td><td className="px-2 border text-right">{r.blob}</td><td className="px-2 border text-right">{r.avg}</td><td className="px-2 border text-center"><button className="text-red-600" onClick={()=>removeRow(r.key)}>✖</button></td></tr>))}
+        <table className="table-auto w-full border">
+        <thead className="sticky top-0 bg-gray-100">
+          <tr>
+            <th className="px-2 border">Image</th>
+            <th className="px-2 border">Egg #</th>
+            <th className="px-2 border">Otsu</th>
+            <th className="px-2 border">Blob</th>
+            <th className="px-2 border">Avg</th>
+            <th className="px-2 border">Confidence</th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+          rows.map( r => (<tr key={r.key}><td className="px-2 border whitespace-nowrap">{r.img}</td><td className="px-2 border text-center">{r.id}</td><td className="px-2 border text-right">{r.otsu}</td><td className="px-2 border text-right">{r.blob}</td><td className="px-2 border text-right">{r.avg}</td><td className="px-2 border text-center"><button className="text-red-600" onClick={()=>removeRow(r.key)}>✖</button></td></tr>))}
         </tbody></table>
       </div>
     </div>
