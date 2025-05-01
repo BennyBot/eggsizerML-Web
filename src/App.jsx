@@ -19,30 +19,6 @@ const POLY_MAX_AREA = 500000;
 const PIXELS_PER_MM = 100;
 const CANVAS_STYLE  = { width: "100%", height: "100%", display: "block", backgroundColor: "#000" };
 
-export default function EggCanvas({mat, onClick}) {
-  const ref = useRef(null);
-
-  useLayoutEffect(() => {
-    if (!mat) return;
-    const canvas = ref.current;
-    const {clientWidth: W, clientHeight: H} = canvas.parentNode;
-
-    canvas.width = W;
-    canvas.height = H;
-
-    const scaled = new cv.Mat();
-    const scale = W / mat.cols;
-
-    cv.resize(mat, scaled, new cv.Size(W, Math.round(mat.rows * scale)));
-
-    cv.imshow(canvas, scaled);
-    scaled.delete();
-  }, [mat]);
-
-  return (
-    <canvas ref={ref} style={CANVAS_STYLE} onClick={onClick}/>
-  );
-}
 
 export default function EggSizerApp() {
   /* -------------------- load OpenCV + blob detector -------------------- */
