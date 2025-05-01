@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useLayoutEffect } from "react";
 import "./App.css"
 import JSZip from "jszip";
 // -----------------------------------------------------------------------------
@@ -17,7 +17,32 @@ const BLOB_MAX_AREA = 500000;
 const POLY_MIN_AREA = 5000;
 const POLY_MAX_AREA = 500000;
 const PIXELS_PER_MM = 100;
-const CANVAS_STYLE  = { width: "100%", height: "40vh", border: "1px solid #fff" };
+const CANVAS_STYLE  = { width: "100%", height: "100%", display: "block", backgroundColor: "#000" };
+
+export default function EggCanvas({mat, onClick}) {
+  const ref = useRef(null);
+
+  useLayoutEffect(() => {
+    if (!mat) return;
+    const canvas = ref.current;
+    const {clientWidth: W, clientHeight: H} = canvas.parentNode;
+
+    canvas.width = W;
+    canvas.height = H;
+
+    const scaled = new cv.Mat();
+    const scale = W / mat.cols;
+
+    cv.resize(mat, scaled, new cv.Size(W, Math.round(mat.rows * scale)));
+
+    cv.imshow(canvas, scaled);
+    scaled.delete();
+  }, [mat]);
+
+  return (
+    <canvas ref={ref} style={CANVAS_STYLE} onClick={onClick}/>
+  );
+}
 
 export default function EggSizerApp() {
   /* -------------------- load OpenCV + blob detector -------------------- */
@@ -437,12 +462,16 @@ export default function EggSizerApp() {
       <section className="main">
         <div className="left">
           <div className="canvas-group">
-            <p className="caption">Blob Processed (click egg to remove)</p>
-            <div className="canvas-box"><canvas ref={canvBlob} style={CANVAS_STYLE} onClick={clickBlobCanvas}/></div>
+            <p className="caption">Blob Detection</p>
+            <div className="canvas-box">
+              <EggCanvas mat={bases[idx]?.blob} onClick={clickBlobCanvas}/>
+            </div>
           </div>
           <div className="canvas-group">
-            <p className="caption">Polygon Approx</p>
-            <div className="canvas-box"><canvas ref={canvPoly} style={CANVAS_STYLE} onClick={clickPolyCanvas}/></div>
+            <p className="caption">Polygonal Approximation</p>
+            <div className="canvas-box">
+              <EggCanvas mat={bases[idx]?.poly} onClick={clickPolyCanvas}/>
+            </div>
           </div>
         </div>
         <div className="right">
