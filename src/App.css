@@ -20,12 +20,12 @@
 .btn-row {
   display: flex;
   justify-content: center;
-  gap: 0.6rem;
+  gap: 1.6rem;
   flex-wrap: wrap;               /* wraps nicely on narrow screens */
 }
 
 .btn-row button {
-  padding: 1.4rem 0.9rem;
+  padding: 0.4rem 0.9rem;
   border-radius: 8px;
   border: 1px solid #888;
   color: #f7f7f7;
