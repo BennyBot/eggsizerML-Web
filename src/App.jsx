@@ -321,7 +321,7 @@ export default function EggSizerApp() {
     if(!rows.length) return;
     const header = "Image,Egg,Otsu(mm^2),Blob(mm^2),Avg(mm^2)\n";
     let usablerows = rows.filter(r=>!r.removed);
-    const body = usablerowsows.map(r=>`${r.img},${r.id},${r.otsu},${r.blob},${r.avg}`).join("\n");
+    const body = usablerows.map(r=>`${r.img},${r.id},${r.otsu},${r.blob},${r.avg}`).join("\n");
     const b = new Blob([header+body],{type:"text/csv"});
     const a=document.createElement("a");
     a.href=URL.createObjectURL(b);
@@ -344,6 +344,11 @@ export default function EggSizerApp() {
         "Confidence": r.confidence
       })
     });
+    const b = new Blob([JSON.stringify(output,null,2)],{type:"application/json"});
+    const a=document.createElement("a");
+    a.href=URL.createObjectURL(b);
+    a.download="egg_sizes.json";
+    a.click();
   }
 
   /* ------------------ UI -------------------------------- */
