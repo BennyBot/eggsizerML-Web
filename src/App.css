@@ -27,11 +27,23 @@
   padding: 0.4rem 0.9rem;
   border-radius: 8px;
   border: 1px solid #888;
-  background: #f7f7f7;
+  color: #f7f7f7;
+  background: #333;
   cursor: pointer;
   transition: background 0.15s;
 }
-.btn-row button:hover { background: #e7e7e7; }
+.btn-row button:hover { background: #444; }
+.btn-row button:active { background: #555; }
+
+/* make one for blue button too */
+.btn-row .blue {
+  background: #007bff;
+  border: 1px solid #007bff;
+}
+.btn-row .blue:hover { background: #008cff; }
+.btn-row .blue:active { background: #0099ff; }
+
+
 
 /* ===== main 2-column area ===== */
 .main {

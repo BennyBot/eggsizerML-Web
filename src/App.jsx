@@ -371,21 +371,21 @@ export default function EggSizerApp() {
       {/*header*/}
       <h1 className="title">EggsizerML Web</h1>
       <div className="btn-row">
-        <input type="file" webkitdirectory directory multiple accept="image/*" disabled={!cvReady||processing} onChange={onFileChange}
-               className="file:rounded-lg file:border-0 file:bg-gray-800 file:text-white disabled:opacity-40" />
-        <input type="folder" multiple accept="image/*" disabled={!cvReady||processing} onChange={onFileChange}
-               className="file:rounded-lg file:border-0 file:bg-gray-800 file:text-white disabled:opacity-40" />
-        <button onClick={()=>setIdx(i=>Math.max(0,i-1))} disabled={idx<=0 || processing} className="px-3 py-1 bg-gray-200 rounded disabled:opacity-40">Previous Image</button>
-        <button onClick={()=>setIdx(i=>Math.min(files.length-1,i+1))} disabled={idx>=files.length-1 || processing} className="px-3 py-1 bg-gray-200 rounded disabled:opacity-40">Next Image</button>
-        <button onClick={exportCSV} disabled={!rows.length} className="px-3 py-1 bg-blue-600 text-white rounded disabled:opacity-40">Export CSV</button>
-        <button onClick={exportJSON} disabled={!rows.length} className="px-3 py-1 bg-blue-600 text-white rounded disabled:opacity-40">Export JSON</button>
+        <input type="file" multiple accept="image/*" disabled={!cvReady||processing} onChange={onFileChange}
+               className="file:rounded-lg file:border-0 file:bg-gray-800 file:text-white disabled:opacity-40" />  
+        <button onClick={()=>setIdx(i=>Math.max(0,i-1))} disabled={idx<=0 || processing} className="px-3 py-1 bg-gray-800 rounded disabled:opacity-40">Previous Image</button>
+        <button onClick={()=>setIdx(i=>Math.min(files.length-1,i+1))} disabled={idx>=files.length-1 || processing} className="px-3 py-1 bg-gray-800 rounded disabled:opacity-40">Next Image</button>
+        <button onClick={exportCSV} disabled={!rows.length} className="blue">Export CSV</button>
+        <button onClick={exportJSON} disabled={!rows.length} className="blue">Export JSON</button>
       </div>
       
       <section className="main">
         <div className="left">
           <div className="space-y-4">
-            <div className="canvas-box"><p className="font-semibold mb-1">Blob Processed (click egg to remove)</p><canvas ref={canvBlob} style={CANVAS_STYLE} onClick={clickBlobCanvas}/></div>
-            <div className="canvas-box"><p className="font-semibold mb-1">Polygon Approx</p><canvas ref={canvPoly} style={CANVAS_STYLE} onClick={clickPolyCanvas}/></div>
+            <p className="font-semibold mb-1">Blob Processed (click egg to remove)</p>
+            <div className="canvas-box"><canvas ref={canvBlob} style={CANVAS_STYLE} onClick={clickBlobCanvas}/></div>
+            <p className="font-semibold mb-1">Polygon Approx</p>
+            <div className="canvas-box"><canvas ref={canvPoly} style={CANVAS_STYLE} onClick={clickPolyCanvas}/></div>
           </div>
         </div>
         <div className="right">
