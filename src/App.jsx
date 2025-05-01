@@ -323,14 +323,16 @@ export default function EggSizerApp() {
           <div><p className="font-semibold mb-1">Blob Processed (click egg to remove)</p><canvas ref={canvBlob} style={CANVAS_STYLE} onClick={clickBlobCanvas}/></div>
           <div><p className="font-semibold mb-1">Polygon Approx</p><canvas ref={canvPoly} style={CANVAS_STYLE} onClick={clickPolyCanvas}/></div>
         </div>
-        <div className="overflow-x-auto h-[82vh] text-sm">
-          <table className="table-auto w-full border"><thead className="sticky top-0 bg-gray-100"><tr><th className="px-2 border">Image</th><th className="px-2 border">Egg #</th><th className="px-2 border">Otsu</th><th className="px-2 border">Blob</th><th className="px-2 border">Avg</th><th className="px-2 border"></th></tr></thead><tbody>
-            {rows.map(r=>(<tr key={r.key}><td className="px-2 border whitespace-nowrap">{r.img}</td><td className="px-2 border text-center">{r.id}</td><td className="px-2 border text-right">{r.otsu}</td><td className="px-2 border text-right">{r.blob}</td><td className="px-2 border text-right">{r.avg}</td><td className="px-2 border text-center"><button className="text-red-600" onClick={()=>removeRow(r.key)}>✖</button></td></tr>))}
-          </tbody></table>
-        </div>
+        
       </div>
       {!cvReady && <p className="text-center text-red-600 mt-4">Loading OpenCV …</p>}
       {processing && <p className="text-center mt-2">Processing {files.length} images …</p>}
+      <div className="overflow-x-auto h-[82vh] text-sm">
+        <table className="table-auto w-full border"><thead className="sticky top-0 bg-gray-100"><tr><th className="px-2 border">Image</th><th className="px-2 border">Egg #</th><th className="px-2 border">Otsu</th><th className="px-2 border">Blob</th><th className="px-2 border">Avg</th><th className="px-2 border"></th></tr></thead><tbody>
+          {rows.map(r=>(<tr key={r.key}><td className="px-2 border whitespace-nowrap">{r.img}</td><td className="px-2 border text-center">{r.id}</td><td className="px-2 border text-right">{r.otsu}</td><td className="px-2 border text-right">{r.blob}</td><td className="px-2 border text-right">{r.avg}</td><td className="px-2 border text-center"><button className="text-red-600" onClick={()=>removeRow(r.key)}>✖</button></td></tr>))}
+        </tbody></table>
+      </div>
     </div>
+    
   );
 }
