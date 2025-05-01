@@ -19,7 +19,7 @@ const POLY_MAX_AREA = 500000;
 const PIXELS_PER_MM = 100;
 const CANVAS_STYLE  = { width: "100%", height: "100%", display: "block", backgroundColor: "#000" };
 
-export function EggCanvas({mat, onClick}) {
+export default function EggCanvas({mat, onClick}) {
   const ref = useRef(null);
 
   useLayoutEffect(() => {
@@ -335,8 +335,17 @@ export default function EggSizerApp() {
 
   const clickBlobCanvas = (e) => {
     const r = canvBlob.current.getBoundingClientRect();
-    const x = e.clientX - r.left;
-    const y = e.clientY - r.top;
+
+    const xCss = e.clientX - r.left;
+    const yCss = e.clientY - r.top;
+
+    const xBmp = xCss * (canvBlob.current.width / r.width);
+    const yBmp = yCss * (canvBlob.current.height / r.height);
+
+    const scale = canvBlob.current.width / mat.cols;
+
+    const x = xBmp / scale;
+    const y = yBmp / scale;
     console.log(`Blob click at (${x},${y})`);
     const hit = rows.find(
       row => row.imgIdx === idx && ((x-row.blobcenter.x)**2 + (y-row.blobcenter.y)**2 <= row.radius**2)
@@ -346,9 +355,18 @@ export default function EggSizerApp() {
   };
 
   const clickPolyCanvas = (e) => {
-    const r = canvPoly.current.getBoundingClientRect();
-    const x = e.clientX - r.left;
-    const y = e.clientY - r.top;
+    const r = canvBlob.current.getBoundingClientRect();
+
+    const xCss = e.clientX - r.left;
+    const yCss = e.clientY - r.top;
+
+    const xBmp = xCss * (canvBlob.current.width / r.width);
+    const yBmp = yCss * (canvBlob.current.height / r.height);
+
+    const scale = canvBlob.current.width / mat.cols;
+
+    const x = xBmp / scale;
+    const y = yBmp / scale;
     console.log(`Poly click at (${x},${y})`);
     const hit = rows.find(
       row => row.imgIdx === idx && ((x-row.polycenter.x)**2 + (y-row.polycenter.y)**2 <= row.radius**2)
@@ -464,13 +482,13 @@ export default function EggSizerApp() {
           <div className="canvas-group">
             <p className="caption">Blob Detection</p>
             <div className="canvas-box">
-              <EggCanvas mat={bases[idx]?.blob} onClick={clickBlobCanvas}/>
+              <canvas ref={canvBlob} onClick={clickBlobCanvas}/>
             </div>
           </div>
           <div className="canvas-group">
             <p className="caption">Polygonal Approximation</p>
             <div className="canvas-box">
-              <EggCanvas mat={bases[idx]?.poly} onClick={clickPolyCanvas}/>
+              <canvas ref={canvPoly} onClick={clickPolyCanvas}/>
             </div>
           </div>
         </div>
