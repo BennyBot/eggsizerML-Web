@@ -88,7 +88,7 @@ export default function EggSizerApp() {
         const pt = approx.intPtr(j); 
         pts.push({x: pt[0], y: pt[1]}); 
       }
-      console.log(`Number of vertices: ${pts.length}`);
+      //console.log(`Number of vertices: ${pts.length}`);
       eggs.push(
         { 
           center:{
