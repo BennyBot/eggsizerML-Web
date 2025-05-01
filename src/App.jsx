@@ -242,11 +242,6 @@ export default function EggSizerApp() {
     
     // we shouldn't need to redo the poly and blob detection, but we do need to remove the egg from the image
     // the row already contains the center and radius for blob, and the center and polyPts for poly
-    const hit = newRows.find(r => r.key === key);
-    if(!hit) {
-      console.log("no hit");
-      return;
-    }
 
     bases[idx].blob.delete();
     bases[idx].poly.delete();
