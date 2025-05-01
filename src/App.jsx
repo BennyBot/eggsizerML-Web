@@ -229,6 +229,7 @@ export default function EggSizerApp() {
 
   /* ------------------ deletion update --------------------------- */
   const removeRow=(key)=>{
+    console.log(`Removing row ${key}`);
     // remove from rows
     const newRows = rows.filter(r => r.key !== key);
     setRows(newRows);
@@ -242,7 +243,10 @@ export default function EggSizerApp() {
     // we shouldn't need to redo the poly and blob detection, but we do need to remove the egg from the image
     // the row already contains the center and radius for blob, and the center and polyPts for poly
     const hit = newRows.find(r => r.key === key);
-    if(!hit) return;
+    if(!hit) {
+      console.log("no hit");
+      return;
+    }
 
     bases[idx].blob.delete();
     bases[idx].poly.delete();
@@ -258,6 +262,7 @@ export default function EggSizerApp() {
       center: {x:r.polycenter.x, y:r.polycenter.y},
       polyPts: r.polyPts,
     }));
+
     drawBlobOverlay(bases[idx].blob, blobList);
     drawPolyOverlay(bases[idx].poly, polyList);
 
@@ -283,6 +288,7 @@ export default function EggSizerApp() {
     const hit = rows.find(
       row => row.imgIdx === idx && ((x-row.blobcenter.x)**2 + (y-row.blobcenter.y)**2 <= row.radius**2)
     );
+    console.log(`Hit: ${hit ?? "none"}`);
     if(hit) removeRow(hit.key);
   };
 
@@ -294,6 +300,7 @@ export default function EggSizerApp() {
     const hit = rows.find(
       row => row.imgIdx === idx && ((x-row.polycenter.x)**2 + (y-row.polycenter.y)**2 <= row.radius**2)
     );
+    console.log(`Hit: ${hit ?? "none"}`);
     if(hit) removeRow(hit.key);
   }
   /* ------------------ CSV export ---------------------- */
