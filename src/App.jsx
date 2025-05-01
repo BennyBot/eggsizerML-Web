@@ -366,55 +366,56 @@ export default function EggSizerApp() {
     a.click();
   }
 
-  const exportImages = () => {
-    // we want to output all of the images with the blobs and polygons drawn on them
-    // For example, if we have image A, we want to save image 'A-blobs.png' and 'A-polygons.png'
 
-    // we can use the cv.imwrite function to do this, but we need to convert the Mat to a PNG first
-
-    // additionally, we want this to be a zip file, so we need to use JSZip
-    // https://stuk.github.io/jszip/documentation/examples/zip.html
-
-    // we can use the JSZip library to create a zip file and add the images to it
-
-
-    const imgList = Object.keys(bases).map(i => {
-      const base = bases[i];
-      const blobImg = base.blob.clone();
-      const polyImg = base.poly.clone();
-      const origImg = base.orig.clone();
-      const filename = files[i].name.split(".")[0];
-      const blobName = `${filename}-blobs.png`;
-      const polyName = `${filename}-polygons.png`;
-      const origName = `${filename}-
-original.png`;
-      const blobData = cv.imencode(".png", blobImg);
-      const polyData = cv.imencode(".png", polyImg);
-      const origData = cv.imencode(".png", origImg);
-      blobImg.delete();
-      polyImg.delete();
-      origImg.delete();
-      return {
-        blob: {name: blobName, data: blobData},
-        poly: {name: polyName, data: polyData},
-        orig: {name: origName, data: origData}
-      };
+  function matToPngBlob(mat) {
+    return new Promise((resolve) => {
+      const canvas = document.createElement("canvas");
+      cv.imshow(canvas, mat);                   // draw Mat → <canvas>
+      canvas.toBlob((blob) => resolve(blob), "image/png");
     });
-
+  }
+  
+  /**
+   * Export every blob / polygon / original image in `bases`
+   * as one ZIP named “egg_images.zip”.
+   *   - `bases[i]`  → { blob: cv.Mat, poly: cv.Mat, orig: cv.Mat }
+   *   - `files[i]`  → original `File` object (for the stem name)
+   */
+  async function exportImages() {
     const zip = new JSZip();
-    imgList.forEach(img => {
-      zip.file(img.blob.name, img.blob.data);
-      zip.file(img.poly.name, img.poly.data);
-      zip.file(img.orig.name, img.orig.data);
-
+  
+    // create an array of Promises so we can await them in parallel
+    const tasks = Object.keys(bases).map(async (i) => {
+      const base   = bases[i];
+      const stem   = files[i].name.replace(/\.[^.]+$/, ""); // filename w/o ext
+  
+      // Mat → Blob (PNG)
+      const [blobPng, polyPng, origPng] = await Promise.all([
+        matToPngBlob(base.blob),
+        matToPngBlob(base.poly),
+        matToPngBlob(base.orig)
+      ]);
+  
+      // add to the ZIP (JSZip accepts Blob objects directly)
+      zip.file(`${stem}-blobs.png`,    blobPng);
+      zip.file(`${stem}-polygons.png`, polyPng);
+      zip.file(`${stem}-original.png`, origPng);
+  
+      // free OpenCV memory
+      base.blob.delete();
+      base.poly.delete();
+      base.orig.delete();
     });
-    zip.generateAsync({type:"blob"}).then(function(content) {
-      // see FileSaver.js
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(content);
-      a.download = "egg_images.zip";
-      a.click();
-    });
+  
+    // wait until all Mats are encoded & added
+    await Promise.all(tasks);
+  
+    // generate the archive & trigger download
+    const zipBlob = await zip.generateAsync({ type: "blob" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(zipBlob);
+    link.download = "egg_images.zip";
+    link.click();
   }
 
 
