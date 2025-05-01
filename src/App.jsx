@@ -262,9 +262,9 @@ export default function EggSizerApp() {
       polyPts: r.polyPts,
     }));
     console.log('c');
-    drawBlobOverlay(bases[idx].blob, blobList);
+    drawBlobOverlay(bases[idx].blob, thisimageRows);
     console.log('d');
-    drawPolyOverlay(bases[idx].poly, polyList);
+    drawPolyOverlay(bases[idx].poly, thisimageRows);
     console.log('e');
     cv.imshow(canvBlob.current, bases[idx].blob);
     cv.imshow(canvPoly.current, bases[idx].poly);
