@@ -137,18 +137,20 @@ export default function EggSizerApp() {
   /* overlays */
   const drawBlobOverlay=(mat,list)=>{
     list.forEach(e => {
-      cv.circle(mat, new cv.Point(e.blobcenter.x, e.blobcenter.y), e.radius || 30, new cv.Scalar(255,0,0,255), 2);
-      cv.putText(mat, String(e.id), new cv.Point(e.blobcenter.x,e.blobcenter.y), cv.FONT_HERSHEY_SIMPLEX, 1, new cv.Scalar(255,0,0,255), 3);
+      let color = e.removed ? new cv.Scalar(0,0,255,255) : new cv.Scalar(0,150,0,255);
+      cv.circle(mat, new cv.Point(e.blobcenter.x, e.blobcenter.y), e.radius || 30, color, 2);
+      cv.putText(mat, String(e.id), new cv.Point(e.blobcenter.x,e.blobcenter.y), cv.FONT_HERSHEY_SIMPLEX, 1, color, 3);
     });
   };
 
 
   const drawPolyOverlay=(mat,list)=>{
     list.forEach(e=>{
+      let color = e.removed ? new cv.Scalar(0,0,255,255) : new cv.Scalar(0,150,0,255);
       if(e.polyPts){
         for(let i=0;i<e.polyPts.length;i++){
           const p1=e.polyPts[i]; const p2=e.polyPts[(i+1)%e.polyPts.length];
-          cv.line(mat,new cv.Point(p1.x,p1.y),new cv.Point(p2.x,p2.y),new cv.Scalar(0,150,0,255),2);
+          cv.line(mat,new cv.Point(p1.x,p1.y),new cv.Point(p2.x,p2.y), color,2);
         }
       }
       cv.putText(
@@ -157,7 +159,7 @@ export default function EggSizerApp() {
         new cv.Point(e.polycenter.x, e.polycenter.y),
         cv.FONT_HERSHEY_SIMPLEX,
         1,
-        new cv.Scalar(0,150,0,255),
+        color,
         3);
     });
   };
@@ -200,6 +202,8 @@ export default function EggSizerApp() {
               radius: b?.radius || 30,
               imgIdx: fi,
               polyPts: p?.polyPts || [],
+              removed: false,
+              confidence: 0.5
             };
             newRows.push(row);
             combined.push(row);
@@ -230,9 +234,18 @@ export default function EggSizerApp() {
   /* ------------------ deletion update --------------------------- */
   const removeRow=(key)=>{
     console.log(`Removing row ${key}`);
+
+
+
+    /*
     // remove from rows
     const newRows = rows.filter(r => r.key !== key);
+    // every key is unique, so get the one that matches
+    let foundRow = rows.find(r => r.key === key);
+    foundRow.removed = !foundRow.removed; // we can use the same logic for unremoving a row
+    newRows.push(foundRow); // add it back to the list
     setRows(newRows);
+    */
 
     // now, we need to update the bases using base.orig, and then redrawing the blob and poly without the deleted egg
     const base = bases[idx];
@@ -304,7 +317,34 @@ export default function EggSizerApp() {
     if(hit) removeRow(hit.key);
   }
   /* ------------------ CSV export ---------------------- */
-  const exportCSV=()=>{if(!rows.length) return;const header="Image,Egg,Otsu(mm²),Blob(mm²),Avg(mm²)\n";const body=rows.map(r=>`${r.img},${r.id},${r.otsu},${r.blob},${r.avg}`).join("\n");const b=new Blob([header+body],{type:"text/csv"});const a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="egg_sizes.csv";a.click();};
+  const exportCSV = () => {
+    if(!rows.length) return;
+    const header = "Image,Egg,Otsu(mm^2),Blob(mm^2),Avg(mm^2)\n";
+    let usablerows = rows.filter(r=>!r.removed);
+    const body = usablerowsows.map(r=>`${r.img},${r.id},${r.otsu},${r.blob},${r.avg}`).join("\n");
+    const b = new Blob([header+body],{type:"text/csv"});
+    const a=document.createElement("a");
+    a.href=URL.createObjectURL(b);
+    a.download="egg_sizes.csv";
+    a.click();
+  };
+
+  const exportJSON = () => {
+    if(!rows.length) return;
+    const usablerows = rows.filter(r=>!r.removed);
+    const output = {results:[]};
+    usablerows.forEach(r => {
+      
+      output.results.push({
+        "Image Name": r.img,
+        "Egg No": r.id,
+        "Otsu Area": r.otsu,
+        "Blob Area": r.blob,
+        "Avg Area": r.avg,
+        "Confidence": r.confidence
+      })
+    });
+  }
 
   /* ------------------ UI -------------------------------- */
   return (
@@ -316,6 +356,7 @@ export default function EggSizerApp() {
         <button onClick={()=>setIdx(i=>Math.max(0,i-1))} disabled={idx<=0 || processing} className="px-3 py-1 bg-gray-200 rounded disabled:opacity-40">Previous Image</button>
         <button onClick={()=>setIdx(i=>Math.min(files.length-1,i+1))} disabled={idx>=files.length-1 || processing} className="px-3 py-1 bg-gray-200 rounded disabled:opacity-40">Next Image</button>
         <button onClick={exportCSV} disabled={!rows.length} className="px-3 py-1 bg-blue-600 text-white rounded disabled:opacity-40">Export CSV</button>
+        <button onClick={exportJSON} disabled={!rows.length} className="px-3 py-1 bg-blue-600 text-white rounded disabled:opacity-40">Export JSON</button>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
